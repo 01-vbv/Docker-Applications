@@ -1,0 +1,40 @@
+1. Error:
+
+	Server:
+	ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+
+
+   Solution: It was failing because faulty daemon.json file
+
+             ##Take backup of file before removing
+ 
+             [vagrant@standalone docker]$ sudo rm /etc/docker/daemon.json
+	       [vagrant@standalone docker]$ sudo systemctl reset-failed docker.service
+	       [vagrant@standalone docker]$ sudo systemctl start docker.service
+	       [vagrant@standalone docker]$ systemctl status docker.service
+
+2. To get the container host id details in tree like structure
+   
+    systemd-cgls
+    https://stackoverflow.com/questions/34878808/finding-docker-container-processes-from-host-point-of-view
+
+3. To check which sercvice is running on specific port in linux distros
+   sudo netstat -tulpn | grep :80 //using port
+   sudo netstat -tulpn | grep nginx //using port
+
+
+4. Adding user to docker group
+
+  [vagrant@standalone ~]$ docker container ls
+  Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/json
+  : dial unix /var/run/docker.sock: connect: permission denied
+ 
+  [vagrant@standalone ~]$ sudo usermod -a -G docker $USER
+ 
+  [vagrant@standalone ~]$ newgrp docker
+ 
+  [vagrant@standalone ~]$ docker container ls -a
+  CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+  5f7abd49b3e7 hello-world "/hello" 19 minutes ago Exited (0) 19 minutes ago  festive_feynman
+
+
