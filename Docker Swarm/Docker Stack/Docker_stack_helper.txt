@@ -1,0 +1,41 @@
+This file contains the commands that has been a part of service creations
+
+
+1) create a secret for the required PostgreSQL admin user password
+
+   echo SuperSecretPassword|docker secret create postgres_password -
+
+
+2) Changing permission for database creation script
+
+  chmod 755 create-docker-database.sh
+
+
+3) create a config file with the file's content. We will use this file to create a database named docker on starting up PostgreSQL. This is something we can use because it is provided by the official Docker Hub PostgreSQL image. We will use docker config create with the create-docker-database.sh file
+
+  docker config create create-docker-database ./create-docker-database.sh
+
+
+4) We will add labels to some of the nodes to ensure the database is always running in that node, since we will create an external volume only on that node.
+
+Move to the node shell where you are indented to create volume and running postgresdb and execute following command.
+
+ docker volume create PGDATA
+
+
+5) This volume will only exist on swarm-node2, so we will create a constraint based on a node label to run the service task only on swarm-node2. We will use docker node update --label-add tier=database for this
+
+ docker node update --label-add tier=database swarm-node2
+
+This is a simple sample. In your production environment, you will never use local volumes. We will need to define and use some plugin that allows us to share the same volume on different hosts, such as NFS and RexRay
+
+
+6) Deploying service using docker stack file
+
+  docker stack deploy -c postgres-stack.yaml postgres
+
+---- Info Only -----
+
+Creating user and database using script during postgres server initialization
+
+https://stackoverflow.com/questions/26598738/how-to-create-user-database-in-script-for-docker-postgres

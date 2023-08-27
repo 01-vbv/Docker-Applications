@@ -1,0 +1,96 @@
+1) Docker swarm init - initializing the docker swarm
+
+Error response from daemon: could not choose an IP address to advertise since this system has multiple addresses on different interfaces (10.0.2.15 on eth0 and 10.10.10.11 on eth1) - specify one with --advertise-addr
+
+This error generally occurs when we have multiple interfaces to invite nodes to join the cluster. Using --advertise-addr we can specify which interface will be used by other nodes to join the cluster.
+
+
+2) --advertise-addr vs --listen-addr
+
+--advertise-addr :  specifies the node ip and the port (default to 2377) used by other nodes to join the cluster. The node that is interested to join cluster will share the token with one of the manager nodes whose IP and port we have mentioned and once it is verified by the manager node it will join the cluster as a worker or manager node based on the token we have mentioned.
+
+--lister-addr    :  Once all nodes join the cluster they need to communicate with each other and not to specific node only. The default is to listen on 0.0.0.0:2377 which tells that it can accept traffic from any of the nodes (generally manager nodes) at port 2377.
+
+
+3) Getting the worker or manager token for joining the cluster
+
+ docker swarm join-token manager
+ docker swarm join-token worker
+
+4) Promoting node 
+
+ docker node update --role manager <node-name>
+ docker node update --role worker <node-name>
+
+We can change node roles using the promote and demote commands as well, but it is more convenient to know what they really mean for node property updates. Also, notice that we can change node roles whenever we want, but we should maintain the number of healthy managers.
+
+We can use any manager to manage the cluster, but only the leader will perform updates on the internal database.
+
+5) Creating Service
+
+ docker service create --name webserver nginx:alpine
+
+6) details of replicas created after creating service
+
+ docker service ps webserver
+
+
+7) Scaling the number of replicas
+  docker service update --replicas 3 webserver
+
+
+8) Forcing replicas to run on specific node
+
+To force specific locations, we can add labels to specific nodes and add constraints to nodes. We'll add a label using docker node update --label-add:
+
+ docker node update --label-add tier=front swarm-node2
+
+ docker service update --constraint-add node.labels.tier==front webserver
+
+
+9) Remonig labels
+
+  docker service update --constraint-rm node.labels.tier==front webserver
+
+10) forcing service tasks redistribution in nodes
+
+  docker service update --force
+
+11) Node pause to stop scheduling new task in that node
+
+  docker node update --availability pause swarm-node3
+
+12) Node drain to empty the node and schedule the tasks running in it to other nodes.
+
+   docker node update --availability drain swarm-node2
+
+13) Using filter to get the tasks with running state
+
+  docker service ps webserver --filter desired-state=running
+
+14) To get all the tasks from all the services running on the specified node.
+  
+  docker node ps <Node>
+
+15) Removing service
+
+  docker service rm webserver
+
+16) Creating global service 
+
+  docker service create --name webserver --mode global nginx:alpine
+
+17) Updating service's base image
+  
+  Creating services using nginx:alpine image and with six replicas
+
+    docker service create --name webserver --replicas 6 --update-delay 10s --update-order start-first nginx:alpine 
+
+  Update services base image to nginx:alpine-perl
+
+    docker service update --image nginx:alpine-perl webserver
+
+--update-delay: update task one by one at 10 sec of interval
+--update-order:  Order of operations during updates. stop-first (old task is stopped before starting new one), or start-first (new task is started first, and the running tasks briefly overlap.
+ 
+ 
