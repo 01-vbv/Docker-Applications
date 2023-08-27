@@ -39,3 +39,25 @@ This is a simple sample. In your production environment, you will never use loca
 Creating user and database using script during postgres server initialization
 
 https://stackoverflow.com/questions/26598738/how-to-create-user-database-in-script-for-docker-postgres
+
+
+7) we can run a simple alpine container attached to the stack's deployed network. In this example, it is postgres_net
+
+  docker container run  -it --network postgres_net alpine
+
+
+8) Installing postgresql client in container
+
+  apk add --update --no-cache postgresql-client --quiet
+
+9) we added the mydatabase and postgres aliases to the database service. Therefore, any of them will be valid for testing database connectivity since Swarm added these entries to the internal DNS. We can test this by running a simple ping command inside the container
+
+    ping -c 1 mydatabase
+
+
+10) We will use the installed client to test our deployed PostgreSQL. Remember to use the previously defined password that we created as a secret, SuperSecretPassword. We will test our database's connectivity using the psql command:
+
+   psql -h mydatabase -U postgres
+
+
+11) type \l to get the list of databases 
